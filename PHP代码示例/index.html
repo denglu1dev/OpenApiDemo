@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>登录易开放平台接入示例</title>
+    <script>
+      // 开放平台添加应用后自动分配的appId
+      var APP_ID = 'xxx';
+      // 登录易 APP 保存的网页地址, 注意此地址的域名要和在开放平台添加应用时填写的授权域名相同，http://test.com仅为示例
+      var DOMAIN = 'http://test.com';
+      // 防止CSRF攻击的cookie key值，这个需与后端约定
+      var CSRF_KEY = 'sState';
+
+      /**
+       * 创建一个form表单来模拟post请求
+       * @param {string} url   请求的url
+       * @param {object} data  post要传递的数据对象
+       */
+      function submitForm(url, data) {
+        var form = document.createElement('form');
+        form.id = 'denglu1_form';
+        form.name = 'denglu1_form';
+        document.body.appendChild(form);
+        for (let key in data) {
+          var input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = data[key];
+          form.appendChild(input);
+        }
+        form.method = 'POST';
+        form.action = url;
+        form.submit();
+        document.body.removeChild(form);
+      }
+
+      /**
+       * 随机生成一定长度的字符串
+       * @param {number} length 随机字符串的长度
+       */
+      function randomString(length = 32) {
+        var str = Math.random()
+          .toString(36)
+          .substr(2);
+        if (str.length >= length) {
+          return str.substr(0, length);
+        }
+        str += randomString(length - str.length);
+        return str;
+      }
+
+      /**
+       * 在浏览器中设置cookie
+       * @param {string} name       cookie的key值
+       * @param {string} value      cookie的value值
+       * @param {number} expireMins cookie存活的分钟数，默认是2分钟
+       */
+      function setCookie(name, value, expireMins = 2) {
+        var min2MillSecond = 60 * 1000;
+        var exp = new Date();
+        exp.setTime(exp.getTime() + expireMins * min2MillSecond);
+        document.cookie =
+          name + '=' + escape(value) + ';expires=' + exp.toGMTString();
+      }
+
+      /**
+       * 1. 开放平台登录
+       */
+      function loginByDenglu1() {
+        var state = randomString();
+        setCookie(CSRF_KEY, state);
+        var url =
+          'https://qrconnect.denglu.net.cn/connect.php?sAppId=' +
+          APP_ID +
+          '&sUrl=' +
+          DOMAIN +
+          '&sType=login&sResType=web';
+        submitForm(url, {
+          sState: state
+        });
+      }
+
+      /**
+       * 2. 开放平台注册
+       */
+      function registerByDenglu1() {
+        var state = randomString();
+        setCookie(CSRF_KEY, state);
+        var url =
+          'https://qrconnect.denglu.net.cn/connect.php?sAppId=' +
+          APP_ID +
+          '&sUrl=' +
+          DOMAIN +
+          '&sType=register&sResType=web';
+        submitForm(url, {
+          sState: state
+        });
+      }
+
+      /**
+       * 3. 开放平台修改密码
+       */
+      function changePwdByDenglu1() {
+        var state = randomString();
+        setCookie(CSRF_KEY, state);
+        var url =
+          'https://qrconnect.denglu.net.cn/connect.php?sAppId=' +
+          APP_ID +
+          '&sUrl=' +
+          DOMAIN +
+          '&sType=change_psw&sResType=web';
+        submitForm(url, {
+          sState: state
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>前端页面接入示例</h1>
+    <div>
+      <button onclick="loginByDenglu1()">开放平台登录</button>
+      <button onclick="registerByDenglu1()">开放平台注册</button>
+      <button onclick="changePwdByDenglu1()">开放平台修改密码</button>
+    </div>
+  </body>
+</html>
